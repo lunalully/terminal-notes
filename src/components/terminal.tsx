@@ -55,9 +55,11 @@ export function Row({
       <Link
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         to={to as any}
-        params={params}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        params={params as any}
         className="min-w-0 flex-1 truncate hover:bg-selection"
       >
+
         <span className="text-muted-foreground">[ </span>
         <span className={color === "area" ? "text-area" : "text-note"}>{label}</span>
         <span className="text-muted-foreground"> ]</span>
