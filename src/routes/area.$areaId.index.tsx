@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { InlineCreate, Row, SectionLabel, Shell, TextButton } from "@/components/terminal";
 import { actions, timeAgo, useLibrary } from "@/lib/store";
 
-export const Route = createFileRoute("/area/$areaId")({
+export const Route = createFileRoute("/area/$areaId/")({
   head: () => ({
     meta: [
       { title: "Área de estudo — NO EXCUSES" },
