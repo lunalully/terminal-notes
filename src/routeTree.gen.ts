@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AreaAreaIdIndexRouteImport } from './routes/area.$areaId.index'
+import { Route as AreaAreaIdNoteIdRouteImport } from './routes/area.$areaId.$noteId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AreaAreaIdIndexRoute = AreaAreaIdIndexRouteImport.update({
+  id: '/area/$areaId/',
+  path: '/area/$areaId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AreaAreaIdNoteIdRoute = AreaAreaIdNoteIdRouteImport.update({
+  id: '/area/$areaId/$noteId',
+  path: '/area/$areaId/$noteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/area/$areaId/$noteId': typeof AreaAreaIdNoteIdRoute
+  '/area/$areaId/': typeof AreaAreaIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/area/$areaId/$noteId': typeof AreaAreaIdNoteIdRoute
+  '/area/$areaId': typeof AreaAreaIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/area/$areaId/$noteId': typeof AreaAreaIdNoteIdRoute
+  '/area/$areaId/': typeof AreaAreaIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/area/$areaId/$noteId' | '/area/$areaId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/area/$areaId/$noteId' | '/area/$areaId'
+  id: '__root__' | '/' | '/area/$areaId/$noteId' | '/area/$areaId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AreaAreaIdNoteIdRoute: typeof AreaAreaIdNoteIdRoute
+  AreaAreaIdIndexRoute: typeof AreaAreaIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +68,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/area/$areaId/': {
+      id: '/area/$areaId/'
+      path: '/area/$areaId'
+      fullPath: '/area/$areaId/'
+      preLoaderRoute: typeof AreaAreaIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/area/$areaId/$noteId': {
+      id: '/area/$areaId/$noteId'
+      path: '/area/$areaId/$noteId'
+      fullPath: '/area/$areaId/$noteId'
+      preLoaderRoute: typeof AreaAreaIdNoteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AreaAreaIdNoteIdRoute: AreaAreaIdNoteIdRoute,
+  AreaAreaIdIndexRoute: AreaAreaIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
