@@ -1,5 +1,6 @@
 import { Check, ChevronLeft, Search, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -197,27 +198,57 @@ export function Menu({
   onOpenChange?: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     onOpenChange?.(open);
     if (!open) return;
+
+    const measure = () => {
+      const anchor = anchorRef.current;
+      const menu = menuRef.current;
+      if (!anchor || !menu) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = menu.offsetWidth;
+      const padding = 8;
+      const maxLeft = window.innerWidth - width - padding;
+      let left = align === "right" ? rect.right - width : rect.left;
+      left = Math.max(padding, Math.min(left, maxLeft));
+      setPos({ top: rect.bottom + 4, left });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+
     const onDown = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || anchorRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener("pointerdown", onDown);
-    return () => document.removeEventListener("pointerdown", onDown);
-  }, [open, onOpenChange]);
+
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [open, align, onOpenChange]);
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={anchorRef}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
         aria-label="menu"
+        aria-haspopup="menu"
+        aria-expanded={open}
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-selection hover:text-foreground",
           triggerClassName,
@@ -225,34 +256,44 @@ export function Menu({
       >
         {trigger}
       </button>
-      {open ? (
-        <div
-          className={cn(
-            "animate-pop absolute z-50 mt-1 min-w-[12rem] rounded-lg border border-border bg-popover p-1 shadow-xl",
-            align === "right" ? "right-0" : "left-0",
-          )}
-        >
-          {items.map((item) => (
-            <button
-              type="button"
-              key={item.label}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpen(false);
-                item.onClick?.();
+      {open
+        ? createPortal(
+            <div
+              ref={menuRef}
+              role="menu"
+              style={{
+                position: "fixed",
+                top: pos?.top ?? 0,
+                left: pos?.left ?? 0,
+                opacity: pos ? 1 : 0,
+                visibility: pos ? "visible" : "hidden",
               }}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-selection",
-                item.danger && "text-destructive hover:text-destructive",
-              )}
+              className="animate-pop z-[9999] min-w-[12rem] rounded-lg border border-border bg-popover p-1 shadow-xl"
             >
-              {item.icon ? <span className="text-muted-foreground">{item.icon}</span> : null}
-              {item.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+              {items.map((item) => (
+                <button
+                  type="button"
+                  role="menuitem"
+                  key={item.label}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(false);
+                    item.onClick?.();
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-selection",
+                    item.danger && "text-destructive hover:text-destructive",
+                  )}
+                >
+                  {item.icon ? <span className="text-muted-foreground">{item.icon}</span> : null}
+                  {item.label}
+                </button>
+              ))}
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }
 

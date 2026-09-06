@@ -16,6 +16,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import { CategoryBadge } from "@/components/terminal";
@@ -95,9 +96,11 @@ export function NoteCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPage, setMenuPage] = useState<"main" | "move">("main");
   const [copied, setCopied] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuAnchorRef = useRef<HTMLButtonElement>(null);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const axis = useRef<"h" | "v" | null>(null);
   const suppressClick = useRef(false);
@@ -106,17 +109,32 @@ export function NoteCard({
 
   useEffect(() => {
     if (!menuOpen) return;
+
+    const measure = () => {
+      const rect = menuAnchorRef.current?.getBoundingClientRect();
+      const panel = menuPanelRef.current;
+      if (!rect || !panel) return;
+      const width = panel.offsetWidth;
+      const padding = 8;
+      let left = rect.right - width;
+      left = Math.max(padding, Math.min(left, window.innerWidth - width - padding));
+      setMenuPos({ top: rect.bottom + 4, left });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+
     const onDown = (e: PointerEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        !cardRef.current?.contains(e.target as Node)
-      ) {
-        setMenuOpen(false);
-      }
+      const t = e.target as Node;
+      if (menuPanelRef.current?.contains(t) || menuAnchorRef.current?.contains(t)) return;
+      setMenuOpen(false);
     };
     document.addEventListener("pointerdown", onDown);
-    return () => document.removeEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+      document.removeEventListener("pointerdown", onDown);
+    };
   }, [menuOpen]);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -279,13 +297,14 @@ export function NoteCard({
                 </p>
               ) : null}
             </div>
-            <div ref={menuRef} onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => e.stopPropagation()}>
               {copied ? (
                 <span className="flex h-8 w-8 items-center justify-center text-neon">
                   <Check className="h-4 w-4" />
                 </span>
               ) : (
                 <button
+                  ref={menuAnchorRef}
                   type="button"
                   aria-label="menu"
                   onClick={() => {
@@ -308,86 +327,103 @@ export function NoteCard({
           </div>
         </div>
 
-        {menuOpen ? (
-          <div
-            className="animate-pop absolute right-3 top-10 z-50 min-w-[13rem] rounded-lg border border-border bg-popover p-1 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {menuPage === "main" ? (
-              <>
-                <MenuButton
-                  onClick={() => {
-                    actions.toggleFavorite(area.id, note.id);
-                    setMenuOpen(false);
-                  }}
-                  icon={<Star className="h-4 w-4" />}
-                  label={note.favorite ? "Desfavoritar" : "Favoritar"}
-                />
-                <MenuButton
-                  onClick={() => {
-                    actions.togglePinned(area.id, note.id);
-                    setMenuOpen(false);
-                  }}
-                  icon={<Pin className="h-4 w-4" />}
-                  label={note.pinned ? "Desafixar" : "Fixar"}
-                />
-                <MenuButton
-                  onClick={() => {
-                    actions.duplicateNote(area.id, note.id);
-                    setMenuOpen(false);
-                  }}
-                  icon={<CopyPlus className="h-4 w-4" />}
-                  label="Duplicar"
-                />
-                <MenuButton
-                  onClick={() => setMenuPage("move")}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  label="Mover categoria"
-                />
-                <MenuButton onClick={openCopy} icon={<Copy className="h-4 w-4" />} label="Copiar" />
-                <MenuButton
-                  onClick={share}
-                  icon={<Share2 className="h-4 w-4" />}
-                  label="Compartilhar"
-                />
-                <div className="my-1 border-t border-border" />
-                <MenuButton
-                  danger
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (window.confirm("Excluir esta nota?")) actions.deleteNote(area.id, note.id);
-                  }}
-                  icon={<Trash2 className="h-4 w-4" />}
-                  label="Excluir"
-                />
-              </>
-            ) : (
-              <>
-                <div className="px-2.5 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Mover para
-                </div>
-                {areas
-                  .filter((a) => a.id !== area.id)
-                  .map((a) => (
+        {menuOpen
+          ? createPortal(
+              <div
+                ref={menuPanelRef}
+                role="menu"
+                style={{
+                  position: "fixed",
+                  top: menuPos?.top ?? 0,
+                  left: menuPos?.left ?? 0,
+                  opacity: menuPos ? 1 : 0,
+                  visibility: menuPos ? "visible" : "hidden",
+                }}
+                className="animate-pop z-[9999] min-w-[13rem] rounded-lg border border-border bg-popover p-1 shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {menuPage === "main" ? (
+                  <>
                     <MenuButton
-                      key={a.id}
                       onClick={() => {
-                        actions.moveNote(area.id, note.id, a.id);
+                        actions.toggleFavorite(area.id, note.id);
                         setMenuOpen(false);
                       }}
-                      icon={
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ background: CATEGORY_COLORS[a.color] }}
-                        />
-                      }
-                      label={`${a.icon} ${a.name}`}
+                      icon={<Star className="h-4 w-4" />}
+                      label={note.favorite ? "Desfavoritar" : "Favoritar"}
                     />
-                  ))}
-              </>
-            )}
-          </div>
-        ) : null}
+                    <MenuButton
+                      onClick={() => {
+                        actions.togglePinned(area.id, note.id);
+                        setMenuOpen(false);
+                      }}
+                      icon={<Pin className="h-4 w-4" />}
+                      label={note.pinned ? "Desafixar" : "Fixar"}
+                    />
+                    <MenuButton
+                      onClick={() => {
+                        actions.duplicateNote(area.id, note.id);
+                        setMenuOpen(false);
+                      }}
+                      icon={<CopyPlus className="h-4 w-4" />}
+                      label="Duplicar"
+                    />
+                    <MenuButton
+                      onClick={() => setMenuPage("move")}
+                      icon={<FolderInput className="h-4 w-4" />}
+                      label="Mover categoria"
+                    />
+                    <MenuButton
+                      onClick={openCopy}
+                      icon={<Copy className="h-4 w-4" />}
+                      label="Copiar"
+                    />
+                    <MenuButton
+                      onClick={share}
+                      icon={<Share2 className="h-4 w-4" />}
+                      label="Compartilhar"
+                    />
+                    <div className="my-1 border-t border-border" />
+                    <MenuButton
+                      danger
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (window.confirm("Excluir esta nota?"))
+                          actions.deleteNote(area.id, note.id);
+                      }}
+                      icon={<Trash2 className="h-4 w-4" />}
+                      label="Excluir"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="px-2.5 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Mover para
+                    </div>
+                    {areas
+                      .filter((a) => a.id !== area.id)
+                      .map((a) => (
+                        <MenuButton
+                          key={a.id}
+                          onClick={() => {
+                            actions.moveNote(area.id, note.id, a.id);
+                            setMenuOpen(false);
+                          }}
+                          icon={
+                            <span
+                              className="h-2 w-2 rounded-full"
+                              style={{ background: CATEGORY_COLORS[a.color] }}
+                            />
+                          }
+                          label={`${a.icon} ${a.name}`}
+                        />
+                      ))}
+                  </>
+                )}
+              </div>,
+              document.body,
+            )
+          : null}
       </div>
     </div>
   );
