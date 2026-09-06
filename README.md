@@ -1,238 +1,64 @@
-# Terminal Notes
+# NO EXCUSES
 
-Crie um aplicativo web chamado “NO EXCUSES”, focado em anotações mentais e organização de estudos.
+Aplicativo de anotações em estilo **terminal hacker**, feito para estudo de
+Cybersegurança e programação. Abra o app e saia escrevendo comandos e anotações
+em poucos segundos — praticamente sem cliques.
 
-Conceito
+Fundo preto, azul neon, amarelo dourado, fonte monoespaçada. Minimalista, rápido
+e 100% offline: tudo fica salvo no `localStorage` do navegador (sem backend).
 
-O aplicativo deve funcionar como uma espécie de biblioteca pessoal de conhecimento, onde o usuário pode criar diferentes áreas de estudo, por exemplo:
+## Funcionalidades
 
-Linguagem C
+### Captura instantânea
 
-Cybersegurança
+- **Nova nota em um toque** — a nota já nasce em modo de edição, com o cursor pronto.
+- **Autosave** — salva sozinho enquanto você digita (status `salvando...` / `salvo ✓`).
+- **Enter cria a próxima nota** — aperte Enter no título (ou `Ctrl/Cmd+Enter` no
+  texto) e outra nota é criada na sequência, sem voltar para a lista.
 
-Java
+### Organização
 
-Linux
+- **Categorias coloridas** com ícone: Cybersegurança, Linux, Programação C, Go,
+  Pentest, Cheatsheet, Estudos e Pessoal (dá para criar novas e trocar a cor).
+- **Favoritos** ⭐ e **fixadas** 📌 (fixadas sempre no topo).
+- **Ordenação**: mais recentes, mais antigas, alfabética, por categoria ou favoritas.
+- **Busca instantânea** por título, conteúdo, tag ou comando.
 
-Redes
+### Editor
 
-Matemática
+- Sem botão "editar" — abre já editável.
+- **Markdown**: títulos, listas, checkboxes (`- [ ]`), blocos de código, `código
+  inline` e citações. Blocos de código têm botão **copiar**.
+- **Toolbar** acima do teclado: `# − [ ] </> * >`.
+- Modo **ler** para pré-visualizar a nota renderizada.
+- **Templates rápidos**: Pentest, Linux e Aula.
 
-Outros
+### Mobile
 
-Dentro de cada área, o usuário poderá criar, editar, visualizar e excluir notas.
+- **Deslizar para a direita** → favoritar / fixar.
+- **Deslizar para a esquerda** → excluir (com confirmação).
+- **Pressionar e segurar** (ou menu ⋯) → duplicar, mover categoria, compartilhar, copiar.
 
-Interface
+### PWA
 
-A interface deve ser:
+Instalável no desktop e no celular, funciona offline depois de carregado
+(Service Worker + manifest). Os dados continuam disponíveis sem internet.
 
-Minimalista
+## Guia de uso
 
-Intuitiva
+- Na tela inicial, use a **busca**, os **chips de categoria** e **Nova nota**.
+- Toque em uma nota para abrir e já digitar. Enter cria a próxima.
+- Use a engrenagem para **exportar/importar backup** (JSON).
+- A engrenagem da categoria permite renomear, trocar a cor ou excluir.
 
-Rápida
+## Desenvolvimento
 
-Fácil de navegar
-
-Sem excesso de botões ou elementos visuais
-
-Com aparência inspirada em terminal Linux
-
-Fundo preto ou cinza muito escuro
-
-Tipografia monoespaçada
-
-Poucas cores, utilizadas apenas para destacar informações importantes
-
-Visual limpo e profissional
-
-O nome “NO EXCUSES” deve aparecer no topo da aplicação.
-
-O logo deve ser um chapeuzinho estilo Fedora, simples e minimalista.
-
-Sistema de cores
-
-Utilize poucas cores e com bastante contraste.
-
-Exemplo:
-
-Nome das áreas/tópicos: amarelo
-
-Título das notas: vermelho ou azul
-
-Texto normal: branco/cinza claro
-
-Elementos selecionados: uma cor de destaque discreta
-
-Quando o usuário utilizar "" ou (), destacar automaticamente esse trecho com uma cor diferente, como amarelo, mantendo boa legibilidade.
-
-Exemplo visual:
-
-[ Linguagem C ]
-
-> MATRIZES E VETORES
-
-Matriz é uma estrutura utilizada para armazenar dados em linhas e colunas.
-
-"int matriz[3][3]" → trecho destacado
-
-(linha, coluna) → trecho destacado
-
-Organização
-
-A tela inicial deve funcionar como uma biblioteca.
-
-Mostrar as áreas de estudo de maneira simples:
-
-NO EXCUSES
-────────────────────────────
-
-> STUDY LIBRARY
-
-[ C ]
-[ CYBERSEGURANÇA ]
-[ JAVA ]
-[ LINUX ]
-[ REDES ]
-
-+ NOVA ÁREA
-
-
-Ao entrar em uma área:
-
-NO EXCUSES / C
-────────────────────────────
-
-> NOTES
-
-[ MATRIZES E VETORES ]
-[ POINTERS ]
-[ STRUCTS ]
-[ FUNÇÕES ]
-[ LOOPS ]
-
-+ NOVA NOTA
-
-
-Ao abrir uma nota, mostrar o conteúdo de forma confortável para leitura e edição.
-
-Funcionalidades
-
-Implementar:
-
-Criar áreas de estudo
-
-Renomear áreas
-
-Excluir áreas
-
-Criar notas dentro das áreas
-
-Editar notas
-
-Excluir notas
-
-Título da nota
-
-Conteúdo da nota
-
-Pesquisa de notas
-
-Navegação simples entre áreas e notas
-
-Indicador de última edição
-
-Autosave
-
-Persistência dos dados utilizando localStorage
-
-O aplicativo deve continuar funcionando sem internet depois de carregado
-
-PWA
-
-O aplicativo deve ser desenvolvido como uma PWA (Progressive Web App).
-
-Implementar:
-
-manifest.json
-
-Service Worker
-
-Cache dos arquivos necessários
-
-Instalação no desktop e celular
-
-Funcionamento offline
-
-Interface responsiva
-
-Armazenamento
-
-Não utilizar backend inicialmente.
-
-Todos os dados devem ser armazenados localmente utilizando localStorage.
-
-A estrutura dos dados deve ser organizada de forma que futuramente seja fácil adicionar:
-
-Exportação das notas
-
-Importação das notas
-
-Backup
-
-Sincronização em nuvem
-
-Tags
-
-Markdown
-
-Experiência
-
-Priorize simplicidade e velocidade.
-
-Não transformar o aplicativo em um clone do Notion.
-
-A ideia é parecer uma biblioteca pessoal de conhecimento dentro de um terminal, onde abrir o aplicativo e escrever uma anotação seja extremamente rápido.
-
-Evite:
-
-Gradientes exagerados
-
-Muitas cores
-
-Animações desnecessárias
-
-Cards gigantes
-
-Elementos chamativos
-
-Menus complexos
-
-Interface cheia de informações
-
-O resultado deve transmitir a sensação de:
-
-“Abri meu terminal. Tenho algo para aprender. Vou anotar.”
-
-Antes de implementar, analise a arquitetura do projeto e escolha uma estrutura simples e sustentável. Depois implemente a aplicação completa, garantindo que todas as funcionalidades estejam funcionando e que os dados não sejam perdidos ao recarregar ou fechar o navegador.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/85f8d302-e0ed-4c48-9ba2-cb66e2eec931).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requer Node.js (ou Bun). Instale e rode:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+npm install   # ou: bun install
+npm run dev   # http://localhost:8080
 ```
+
+> A estética segue um terminal: `"texto"` fica amarelo, `(parênteses)` fica azul
+> e `código` é destacado — para manter a leitura agradável de comandos e trechos.
