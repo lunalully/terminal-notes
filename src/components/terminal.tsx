@@ -1,27 +1,17 @@
+import { Check, ChevronLeft, Search, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-export function Shell({ crumbs, children }: { crumbs?: ReactNode; children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background px-4 py-6 font-mono text-foreground sm:px-8 sm:py-10">
-      <div className="mx-auto w-full max-w-3xl">
-        <header className="flex items-baseline gap-2">
-          <FedoraMark />
-          <Link to="/" className="text-lg font-bold tracking-[0.25em] text-foreground">
-            NO EXCUSES
-          </Link>
-          {crumbs ? <span className="text-muted-foreground">/ {crumbs}</span> : null}
-        </header>
-        <div className="mt-3 mb-6 border-t border-border" />
-        {children}
-      </div>
-    </div>
-  );
-}
+import { cn } from "@/lib/utils";
+import { CATEGORY_COLORS, type Area, type CategoryColor } from "@/lib/store";
 
-export function FedoraMark() {
+export function FedoraMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 14" className="h-4 w-7 shrink-0 text-accent" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 14"
+      className={cn("h-4 w-7 shrink-0 text-gold", className)}
+      aria-hidden="true"
+    >
       <path
         d="M6 8c0-4 1.5-6 6-6s6 2 6 6c3 .6 5 1.7 5 2.9C23 12.6 18.1 14 12 14S1 12.6 1 10.9C1 9.7 3 8.6 6 8Z"
         fill="currentColor"
@@ -31,45 +21,55 @@ export function FedoraMark() {
   );
 }
 
-export function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className="mb-4 text-sm text-muted-foreground">&gt; {children}</div>;
-}
-
-export function Row({
-  label,
-  meta,
-  to,
-  params,
-  color = "area",
-  actions,
+export function Shell({
+  back,
+  crumbs,
+  right,
+  children,
 }: {
-  label: string;
-  meta?: string;
-  to: string;
-  params?: Record<string, string>;
-  color?: "area" | "note";
-  actions?: ReactNode;
+  back?: () => void;
+  crumbs?: ReactNode;
+  right?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="group flex items-center justify-between gap-3 border-b border-border/60 py-2">
-      <Link
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        to={to as any}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        params={params as any}
-        className="min-w-0 flex-1 truncate hover:bg-selection"
-      >
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-32 sm:px-6">
+        <header className="sticky top-0 z-20 -mx-4 border-b border-border/60 bg-background/90 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6">
+          <div className="flex items-center gap-1.5">
+            {back ? (
+              <button
+                type="button"
+                onClick={back}
+                aria-label="voltar"
+                className="mr-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-selection hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            ) : null}
+            <Link to="/" className="flex items-center gap-2">
+              <FedoraMark />
+              <span className="text-sm font-bold tracking-[0.25em]">NO EXCUSES</span>
+            </Link>
+            {crumbs ? (
+              <span className="ml-1 flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground">
+                <span className="text-muted-foreground/50">/</span>
+                <span className="truncate">{crumbs}</span>
+              </span>
+            ) : null}
+            <div className="ml-auto flex items-center gap-0.5">{right}</div>
+          </div>
+        </header>
+        <main className="pt-4">{children}</main>
+      </div>
+    </div>
+  );
+}
 
-        <span className="text-muted-foreground">[ </span>
-        <span className={color === "area" ? "text-area" : "text-note"}>{label}</span>
-        <span className="text-muted-foreground"> ]</span>
-        {meta ? <span className="ml-2 text-xs text-muted-foreground">{meta}</span> : null}
-      </Link>
-      {actions ? (
-        <div className="flex shrink-0 gap-3 text-xs text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100">
-          {actions}
-        </div>
-      ) : null}
+export function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <div className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
+      &gt; {children}
     </div>
   );
 }
@@ -78,22 +78,242 @@ export function TextButton({
   onClick,
   children,
   danger,
+  className,
 }: {
   onClick: () => void;
   children: ReactNode;
   danger?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
-        danger
-          ? "text-destructive hover:underline"
-          : "text-muted-foreground hover:text-foreground hover:underline"
-      }
+      className={cn(
+        "text-muted-foreground transition-colors hover:underline",
+        danger ? "hover:text-destructive" : "hover:text-foreground",
+        className,
+      )}
     >
       {children}
+    </button>
+  );
+}
+
+export function IconButton({
+  onClick,
+  children,
+  label,
+  active,
+  danger,
+  className,
+}: {
+  onClick?: () => void;
+  children: ReactNode;
+  label?: string;
+  active?: boolean;
+  danger?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        "flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-selection hover:text-foreground",
+        active && "text-gold",
+        danger && "hover:text-destructive",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function SearchInput({
+  value,
+  onChange,
+  placeholder = "pesquisar...",
+  autoFocus,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 transition-colors focus-within:border-neon/50",
+        className,
+      )}
+    >
+      <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <input
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        spellCheck={false}
+        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="limpar"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export type MenuItem = {
+  label: string;
+  icon?: ReactNode;
+  onClick?: () => void;
+  danger?: boolean;
+};
+
+export function Menu({
+  items,
+  trigger,
+  align = "right",
+  triggerClassName,
+  onOpenChange,
+}: {
+  items: MenuItem[];
+  trigger: ReactNode;
+  align?: "left" | "right";
+  triggerClassName?: string;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open, onOpenChange]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        aria-label="menu"
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-selection hover:text-foreground",
+          triggerClassName,
+        )}
+      >
+        {trigger}
+      </button>
+      {open ? (
+        <div
+          className={cn(
+            "animate-pop absolute z-50 mt-1 min-w-[12rem] rounded-lg border border-border bg-popover p-1 shadow-xl",
+            align === "right" ? "right-0" : "left-0",
+          )}
+        >
+          {items.map((item) => (
+            <button
+              type="button"
+              key={item.label}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                item.onClick?.();
+              }}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-selection",
+                item.danger && "text-destructive hover:text-destructive",
+              )}
+            >
+              {item.icon ? <span className="text-muted-foreground">{item.icon}</span> : null}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function CategoryBadge({
+  area,
+  className,
+}: {
+  area: Pick<Area, "name" | "icon" | "color">;
+  className?: string;
+}) {
+  const color = CATEGORY_COLORS[area.color] ?? CATEGORY_COLORS.gray;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2 py-0.5 text-[11px] text-muted-foreground",
+        className,
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      <span>{area.icon}</span>
+      <span>{area.name}</span>
+    </span>
+  );
+}
+
+export function ColorDot({ color }: { color: CategoryColor }) {
+  return (
+    <span
+      className="inline-block h-2 w-2 rounded-full"
+      style={{ background: CATEGORY_COLORS[color] ?? CATEGORY_COLORS.gray }}
+    />
+  );
+}
+
+export function Chip({
+  label,
+  icon,
+  color,
+  active,
+  onClick,
+}: {
+  label: string;
+  icon?: string;
+  color?: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
+        active
+          ? "border-neon/50 bg-selection text-foreground"
+          : "border-border/60 text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {color ? <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} /> : null}
+      {icon ? <span>{icon}</span> : null}
+      {label}
     </button>
   );
 }
@@ -115,7 +335,7 @@ export function InlineCreate({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-4 text-sm text-muted-foreground hover:text-accent"
+        className="mt-4 text-sm text-muted-foreground hover:text-neon"
       >
         + {label}
       </button>
@@ -124,7 +344,7 @@ export function InlineCreate({
 
   return (
     <form
-      className="mt-4 flex items-center gap-2"
+      className="mt-4 flex items-center gap-2 rounded-lg border border-border px-3 py-2 focus-within:border-neon/50"
       onSubmit={(e) => {
         e.preventDefault();
         if (!value.trim()) return;
@@ -133,33 +353,22 @@ export function InlineCreate({
         setOpen(false);
       }}
     >
-      <span className="text-accent">$</span>
+      <span className="text-gold">$</span>
       <input
         autoFocus
         value={value}
         placeholder={placeholder}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-        className="flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground/60"
+        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
       />
+      <button
+        type="submit"
+        className="text-muted-foreground hover:text-foreground"
+        aria-label="confirmar"
+      >
+        <Check className="h-4 w-4" />
+      </button>
     </form>
-  );
-}
-
-/** Highlights "quoted" and (parenthesised) fragments. */
-export function Highlighted({ text }: { text: string }) {
-  const parts = text.split(/("[^"]*"|\([^)]*\))/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        /^".*"$|^\(.*\)$/s.test(part) ? (
-          <span key={i} className="text-accent">
-            {part}
-          </span>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
-    </>
   );
 }

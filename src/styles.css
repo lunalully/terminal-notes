@@ -5,24 +5,20 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
+ * NO EXCUSES — hacker/cyberpunk terminal theme.
  *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * Background: near-black (#050505)
+ * Neon blue: links, note titles, selection, focus
+ * Golden yellow: areas/categories, highlights, "quoted" fragments
+ * Gray: secondary information
+ * Red: destructive actions only
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -36,42 +32,43 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: var(--neon);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-area: var(--area);
-  --color-note: var(--note);
+  --color-neon: var(--neon);
+  --color-gold: var(--gold);
+  --color-area: var(--gold);
+  --color-note: var(--neon);
   --color-selection: var(--selection);
 }
 
 :root {
-  --radius: 0.25rem;
-  --background: oklch(0.16 0 0);
+  --radius: 0.5rem;
+  --background: oklch(0.042 0 0); /* #050505 */
   --foreground: oklch(0.9 0 0);
-  --card: oklch(0.19 0 0);
+  --card: oklch(0.085 0 0);
   --card-foreground: oklch(0.9 0 0);
-  --popover: oklch(0.19 0 0);
-  --popover-foreground: oklch(0.9 0 0);
-  --primary: oklch(0.83 0.16 85);
-  --primary-foreground: oklch(0.16 0 0);
-  --secondary: oklch(0.24 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(0.92 0 0);
+  --primary: oklch(0.86 0.18 90); /* golden yellow */
+  --primary-foreground: oklch(0.05 0 0);
+  --secondary: oklch(0.14 0 0);
   --secondary-foreground: oklch(0.9 0 0);
-  --muted: oklch(0.24 0 0);
-  --muted-foreground: oklch(0.62 0 0);
-  --accent: oklch(0.83 0.16 85);
-  --accent-foreground: oklch(0.16 0 0);
-  --destructive: oklch(0.62 0.19 25);
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.3 0 0);
-  --input: oklch(0.3 0 0);
-  --ring: oklch(0.83 0.16 85);
-  --area: oklch(0.83 0.16 85);
-  --note: oklch(0.72 0.15 240);
-  --selection: oklch(0.28 0 0);
+  --muted: oklch(0.14 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+  --neon: oklch(0.74 0.16 235); /* neon blue */
+  --accent-foreground: oklch(0.05 0 0);
+  --gold: oklch(0.86 0.18 90); /* golden yellow */
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: oklch(0.97 0 0);
+  --border: oklch(0.2 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.74 0.16 235);
+  --selection: oklch(0.3 0.07 235);
 }
 
 .dark {
@@ -91,6 +88,7 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
@@ -98,3 +96,60 @@
   }
 }
 
+/* Fast micro animations (150-200ms) */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.18s ease-out both;
+}
+
+.animate-pop {
+  animation: pop 0.15s ease-out both;
+}
+
+@layer base {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.22 0 0);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
